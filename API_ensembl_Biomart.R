@@ -90,9 +90,6 @@ for (i in 1:length(nonuniqueASD)){
 names(nonuniqueASD_mice_human_ds)<-nonuniqueASD
 unlist_nonuniqueASD_mice_human_ds<-unlist(nonuniqueASD_mice_human_ds)
 unlist_nonuniqueASD_mice_human_ds<-as.numeric(unlist_nonuniqueASD_mice_human_ds)
-
-nonuniqueASD_mice_human_dn_ds<-unlist_nonuniqueASD_mice_human_dn/unlist_nonuniqueASD_mice_human_ds
-
 #problem it seems ot have several ds or dn value per gene
 #for example
 #$RHOXF1
@@ -101,7 +98,14 @@ nonuniqueASD_mice_human_dn_ds<-unlist_nonuniqueASD_mice_human_dn/unlist_nonuniqu
 getBM(attributes = "mmusculus_homolog_ds", filters = "hgnc_symbol", values = "RHOXF1", mart = mart.hs)
 getBM(attributes = "hgnc_symbol", filters = "hgnc_symbol", values = "RHOXF1", mart = mart.hs)
 
+#facing tons of problems with R studio and git syn
+# I had to go to the config file in my folder: /Users/mmdavid/R_ensembl/.git #to see the hidden file/folder: ls -a
+#then I change 
 #OK so according to ensembl there is actually orthologs! So I'll take the avearge of the orhtologs 
+
+
+nonuniqueASD_mice_human_dn_ds<-unlist_nonuniqueASD_mice_human_dn/unlist_nonuniqueASD_mice_human_ds
+
 
 
 #now let's grab all the RS per genes
