@@ -53,9 +53,12 @@ mice_human_dn<-c(mice_human_dn,a)
 cat(i,"\t")
 }
 names(mice_human_dn)<-uniqueASD
-unlist_mice_human_dn<-unlist(mice_human_dn)
-unlist_mice_human_dn2<-as.numeric(unlist_mice_human_dn)
-names(unlist_mice_human_dn2)<-names(unlist_mice_human_dn)
+#OK so according to ensembl there is actually orthologs! So I'll take the avearge of the orhtologs 
+mice_human_dn_mean<-sapply(mice_human_dn, function(x) mean(x))
+#remove NA
+mice_human_dn_mean<-sapply(mice_human_dn_mean, function (x) x[!is.na(x)]) 
+#stupid function put it back as a list, so just unlist again. 
+unlist_mice_human_dn_mean<-unlist(mice_human_dn_mean)
 
 mice_human_ds=c()
 for (i in 1:length(uniqueASD)){
@@ -64,12 +67,27 @@ for (i in 1:length(uniqueASD)){
   cat(i,"\t")
 }
 names(mice_human_ds)<-uniqueASD
-unlist_mice_human_ds<-unlist(mice_human_ds)
-unlist_mice_human_ds2<-as.numeric(unlist_mice_human_ds)
-names(unlist_mice_human_ds2)<-names(unlist_mice_human_ds)
+mice_human_ds_mean<-sapply(mice_human_ds, function(x) mean(x))
+#remove NA
+mice_human_ds_mean<-sapply(mice_human_ds_mean, function (x) x[!is.na(x)]) 
+#stupid function put it back as a list, so just unlist again. 
+unlist_mice_human_ds_mean<-unlist(mice_human_ds_mean)
 
-mice_human_dn_ds<-unlist_mice_human_dn/unlist_mice_human_ds
+#ok do the ratio here, I need ot make sure ht ename of the gene is the same 
 
+uniqueASD_dn_ds=c()
+for (i in 1:length(unlist_mice_human_dn_mean)){
+  for (j in 1:length(unlist_mice_human_ds_mean)){
+    if (names(unlist_mice_human_dn_mean[i]) == (names(unlist_mice_human_ds_mean[j]))) {
+    a<-unlist_mice_human_dn_mean[i]/unlist_mice_human_ds_mean[j]
+    names(a)<-names(unlist_mice_human_dn_mean[i])
+    uniqueASD_dn_ds<-c(uniqueASD_dn_ds,a)
+    }
+  }
+}
+
+
+#same with non unique to ASD
 
 nonuniqueASD_mice_human_dn=c()
 for (i in 1:length(nonuniqueASD)){
@@ -78,8 +96,12 @@ for (i in 1:length(nonuniqueASD)){
   cat(i,"\t")
 }
 names(nonuniqueASD_mice_human_dn)<-nonuniqueASD
-unlist_nonuniqueASD_mice_human_dn<-unlist(nonuniqueASD_mice_human_dn)
-unlist_nonuniqueASD_mice_human_dn<-as.numeric(unlist_nonuniqueASD_mice_human_dn)
+
+nonuniqueASD_mice_human_dn_mean<-sapply(nonuniqueASD_mice_human_dn, function(x) mean(x))
+#remove NA #26 not calculated
+nonuniqueASD_mice_human_dn_mean<-sapply(nonuniqueASD_mice_human_dn_mean, function (x) x[!is.na(x)]) 
+#stupid function put it back as a list, so just unlist again. 
+unlist_nonuniqueASD_mice_human_dn_mean<-unlist(nonuniqueASD_mice_human_dn_mean)
 
 nonuniqueASD_mice_human_ds=c()
 for (i in 1:length(nonuniqueASD)){
@@ -88,8 +110,40 @@ for (i in 1:length(nonuniqueASD)){
   cat(i,"\t")
 }
 names(nonuniqueASD_mice_human_ds)<-nonuniqueASD
-unlist_nonuniqueASD_mice_human_ds<-unlist(nonuniqueASD_mice_human_ds)
-unlist_nonuniqueASD_mice_human_ds<-as.numeric(unlist_nonuniqueASD_mice_human_ds)
+nonuniqueASD_mice_human_ds_mean<-sapply(nonuniqueASD_mice_human_ds, function(x) mean(x))
+#remove NA #26 not calculated
+nonuniqueASD_mice_human_ds_mean<-sapply(nonuniqueASD_mice_human_ds_mean, function (x) x[!is.na(x)]) 
+#stupid function put it back as a list, so just unlist again. 
+unlist_nonuniqueASD_mice_human_ds_mean<-unlist(nonuniqueASD_mice_human_ds_mean)
+
+#ok do the ratio here, I need ot make sure ht ename of the gene is the same 
+
+nonuniqueASD_dn_ds=c()
+for (i in 1:length(unlist_nonuniqueASD_mice_human_dn_mean)){
+  for (j in 1:length(unlist_nonuniqueASD_mice_human_ds_mean)){
+    if (names(unlist_nonuniqueASD_mice_human_dn_mean[i]) == (names(unlist_nonuniqueASD_mice_human_ds_mean[j]))) {
+      a<-unlist_nonuniqueASD_mice_human_dn_mean[i]/unlist_nonuniqueASD_mice_human_ds_mean[j]
+      names(a)<-names(unlist_nonuniqueASD_mice_human_dn_mean[i])
+      nonuniqueASD_dn_ds<-c(nonuniqueASD_dn_ds,a)
+    }
+  }
+}
+
+
+#OK let's try to box plot that thing!!
+boxplot(nonuniqueASD_dn_ds, uniqueASD_dn_ds)
+
+
+plot(sort(nonuniqueASD_dn_ds))
+points(sort(uniqueASD_dn_ds), col="red")
+
+wilcox.test(nonuniqueASD_dn_ds,uniqueASD_dn_ds)
+
+# Wilcoxon rank sum test with continuity correction
+#data:  nonuniqueASD_dn_ds and uniqueASD_dn_ds
+#W = 80975, p-value = 0.008392
+#alternative hypothesis: true location shift is not equal to 0
+
 #problem it seems ot have several ds or dn value per gene
 #for example
 #$RHOXF1
@@ -98,15 +152,14 @@ unlist_nonuniqueASD_mice_human_ds<-as.numeric(unlist_nonuniqueASD_mice_human_ds)
 getBM(attributes = "mmusculus_homolog_ds", filters = "hgnc_symbol", values = "RHOXF1", mart = mart.hs)
 getBM(attributes = "hgnc_symbol", filters = "hgnc_symbol", values = "RHOXF1", mart = mart.hs)
 
-#facing tons of problems with R studio and git syn
-# I had to go to the config file in my folder: /Users/mmdavid/R_ensembl/.git #to see the hidden file/folder: ls -a
-#then I change 
-#OK so according to ensembl there is actually orthologs! So I'll take the avearge of the orhtologs 
+
+
+
+cat(length(teststr),"\n")
+
 
 
 nonuniqueASD_mice_human_dn_ds<-unlist_nonuniqueASD_mice_human_dn/unlist_nonuniqueASD_mice_human_ds
-
-
 
 #now let's grab all the RS per genes
 
