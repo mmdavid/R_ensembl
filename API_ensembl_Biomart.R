@@ -144,24 +144,32 @@ wilcox.test(nonuniqueASD_dn_ds,uniqueASD_dn_ds)
 #W = 80975, p-value = 0.008392
 #alternative hypothesis: true location shift is not equal to 0
 
-#problem it seems ot have several ds or dn value per gene
-#for example
-#$RHOXF1
-#[1] 1.1269 1.0964 0.9145 1.0531
-#What is going on ?
-getBM(attributes = "mmusculus_homolog_ds", filters = "hgnc_symbol", values = "RHOXF1", mart = mart.hs)
-getBM(attributes = "hgnc_symbol", filters = "hgnc_symbol", values = "RHOXF1", mart = mart.hs)
+#let's look at the density;
+plot(nonuniqueASD_dn_ds)
+
+#let's try to plot ggplot
+install.packages("ggplot2")
+library("ggplot2")
+
+#useful page for ggplot
+
+ggplot(all_dn_ds, aes(factorforall_dn_ds, all_dn_ds))+
+  geom_boxplot()
+
+#nicer boxplot
+#ok let's try this density graph now
+
+ggplot(all_dn_ds, aes(all_dn_ds, fill = factorforall_dn_ds)) +
+  stat_density(aes(y = ..density..), position = "identity", color = "black", alpha = 0.5)
+
+ggplot(mpg, aes(displ, hwy))
 
 
-
-
-cat(length(teststr),"\n")
-
-
-
-nonuniqueASD_mice_human_dn_ds<-unlist_nonuniqueASD_mice_human_dn/unlist_nonuniqueASD_mice_human_ds
-
-#now let's grab all the RS per genes
-
-
-
+#seems like I need a serious dataframe here. Let's do that: 
+nonuniqueASD_dn_ds
+all_dn_ds<-append(nonuniqueASD_dn_ds,uniqueASD_dn_ds)
+NONUNIQ<-rep("NONUNIQ",length(nonuniqueASD_dn_ds))
+UNIQ<-rep("UNIQ",length(uniqueASD))
+factorforall_dn_ds<-append(NONUNIQ,UNIQ)
+all_dn_ds<-as.data.frame(all_dn_ds)
+all_dn_ds$factorforall_dn_ds<-factorforall_dn_ds
