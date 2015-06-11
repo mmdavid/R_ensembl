@@ -270,10 +270,11 @@ wilcox.test( dnds_primate ~ ASD_status_onlyornot, data= primates)
 #density graph
 
 
-blou<-ggplot(ASD_status, aes(dnds_primate, fill = ASD_status_onlyornot)) +
+blou<-ggplot(primates, aes(dnds_primate, fill = ASD_status_onlyornot)) +
   stat_density(aes(y = ..density..), position = "identity", color = "black", alpha = 0.5)
 
 blou + scale_fill_manual( values = c("green","yellow"))
+
 ggplot(mpg, aes(displ, hwy))
 
 #now let's try with the 1000 genomes projects
@@ -295,11 +296,10 @@ pnps_file_1000Gafricanpops$ASD_status<-none
 allgenes<-c(nonuniqueASD_emsblID,uniqueASD_emsblID)
 pnps_file_1000Gafricanpops$Ensembl_Gene_ID<-as.character(pnps_file_1000Gafricanpops$Ensembl_Gene_ID)
 
-pnps_file_1000GafricanpopsASD<-subset(pnps_file_1000Gafricanpops, pnps_file_1000Gafricanpops$Ensembl_Gene_ID %in% nonuniqueASD_emsblID)
+pnps_file_1000GafricanpopsASD<-subset(pnps_file_1000Gafricanpops, pnps_file_1000Gafricanpops$Ensembl_Gene_ID %in% allgenes)
 
 for (i in 1:dim(pnps_file_1000GafricanpopsASD)[1]){
-  if (pnps_file_1000GafricanpopsASD$Ensembl_Gene_ID[i] %in% nonuniqueASD_emsblID) {pnps_file_1000GafricanpopsASD$ASD_status <- "comorbdASD"}
-  else {pnps_file_1000GafricanpopsASD$ASD_status <- "ASDonly"}
+  if (pnps_file_1000GafricanpopsASD$Ensembl_Gene_ID[i] %in% nonuniqueASD_emsblID) {pnps_file_1000GafricanpopsASD$ASD_status[i] <- "comorbdASD"} else {pnps_file_1000GafricanpopsASD$ASD_status[i] <- "ASDonly"}
   cat(i,"\t")
 }
 
@@ -313,32 +313,52 @@ inf_pb<-pnps_file_1000GafricanpopsASD$DNDS == "Inf"
 noinf_pnps_file_1000GafricanpopsASD<-pnps_file_1000GafricanpopsASD[!inf_pb,]
 
 update_geom_defaults("point", list(colour = NULL)) #to allo the dots to be the same color than the rest, need ot reset at the end update_geom_defaults("point", list(colour = "black"))
-ggplot(noinf_pnps_file_1000GafricanpopsASD, aes( ASD_status,DNDS))+
-  geom_boxplot(aes(colour = factor(ASD_status)), color = c("darkgreen","orange"), outlier.colour = NULL, outlier.size = 4, outlier.shape = 1)
+ggplot(noinf_pnps_file_1000GafricanpopsASD, aes(ASD_status,DNDS))+
+  geom_boxplot(aes(colour = factor(ASD_status)), color = c("darkgreen","orange"), outlier.colour = NULL, outlier.size = 4, outlier.shape = 1, fill = c("green", "yellow"),)
 
 ggplot(all_dn_ds, aes(factorforall_dn_ds, all_dn_ds))+
   geom_boxplot(aes(colour = factor(factorforall_dn_ds)), fill = c("green", "yellow"), color = c("darkgreen","orange"), outlier.colour = NULL, outlier.size = 4, outlier.shape = 1)
 
 
-blou<-ggplot(ASD_status, aes(dnds_primate, fill = ASD_status_onlyornot)) +
+blou<-ggplot(noinf_pnps_file_1000GafricanpopsASD, aes(DNDS, fill = ASD_status)) +
   stat_density(aes(y = ..density..), position = "identity", color = "black", alpha = 0.5)
 
 blou + scale_fill_manual( values = c("green","yellow"))
 
 #cool looking good
 #test
-wilcox.test( dnds_primate ~ ASD_status_onlyornot, data= ASD_status)
+wilcox.test( DNDS ~ ASD_status, data= noinf_pnps_file_1000GafricanpopsASD)
 
-#data:  dnds_primate by ASD_status_onlyornot
-#W = 94548.5, p-value = 0.1574
+#Wilcoxon rank sum test with continuity correction
+#data:  DNDS by ASD_status
+#W = 79654, p-value = 0.9188
 #alternative hypothesis: true location shift is not equal to 0
-#density graph
+
+#ok how about the polymorphism ---------------------------------------------------
+
+#ok let's do the dnds boxplot
+pnps_file_1000GafricanpopsASD_save<-pnps_file_1000GafricanpopsASD
+pnps_file_1000GafricanpopsASD[is.na(pnps_file_1000GafricanpopsASD)] <- 0
+pnps_file_1000GafricanpopsASD1<- pnps_file_1000GafricanpopsASD
+
+#remove the one with infinite
+inf_pb<-pnps_file_1000GafricanpopsASD$DNDS == "Inf"
+noinf_pnps_file_1000GafricanpopsASD<-pnps_file_1000GafricanpopsASD[!inf_pb,]
+
+update_geom_defaults("point", list(colour = NULL)) #to allo the dots to be the same color than the rest, need ot reset at the end update_geom_defaults("point", list(colour = "black"))
+ggplot(noinf_pnps_file_1000GafricanpopsASD, aes(ASD_status,DNDS))+
+  geom_boxplot(aes(colour = factor(ASD_status)), color = c("darkgreen","orange"), outlier.colour = NULL, outlier.size = 4, outlier.shape = 1, fill = c("green", "yellow"),)
+
+ggplot(all_dn_ds, aes(factorforall_dn_ds, all_dn_ds))+
+  geom_boxplot(aes(colour = factor(factorforall_dn_ds)), fill = c("green", "yellow"), color = c("darkgreen","orange"), outlier.colour = NULL, outlier.size = 4, outlier.shape = 1)
 
 
-blou<-ggplot(ASD_status, aes(dnds_primate, fill = ASD_status_onlyornot)) +
+blou<-ggplot(noinf_pnps_file_1000GafricanpopsASD, aes(DNDS, fill = ASD_status)) +
   stat_density(aes(y = ..density..), position = "identity", color = "black", alpha = 0.5)
 
 blou + scale_fill_manual( values = c("green","yellow"))
-ggplot(mpg, aes(displ, hwy))
 
+#cool looking good
+#test
+wilcox.test( DNDS ~ ASD_status, data= noinf_pnps_file_1000GafricanpopsASD)
 
