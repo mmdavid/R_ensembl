@@ -334,31 +334,30 @@ wilcox.test( DNDS ~ ASD_status, data= noinf_pnps_file_1000GafricanpopsASD)
 #W = 79654, p-value = 0.9188
 #alternative hypothesis: true location shift is not equal to 0
 
-#ok how about the polymorphism ---------------------------------------------------
+#ok how about the polymorphism ------------------------------------------------------------------
 
 #ok let's do the dnds boxplot
-pnps_file_1000GafricanpopsASD_save<-pnps_file_1000GafricanpopsASD
-pnps_file_1000GafricanpopsASD[is.na(pnps_file_1000GafricanpopsASD)] <- 0
-pnps_file_1000GafricanpopsASD1<- pnps_file_1000GafricanpopsASD
+
 
 #remove the one with infinite
-inf_pb<-pnps_file_1000GafricanpopsASD$DNDS == "Inf"
-noinf_pnps_file_1000GafricanpopsASD<-pnps_file_1000GafricanpopsASD[!inf_pb,]
+inf_pb<-pnps_file_1000GafricanpopsASD$PNPS == "Inf"
+psnoinf_pnps_file_1000GafricanpopsASD<-pnps_file_1000GafricanpopsASD[!inf_pb,]
 
 update_geom_defaults("point", list(colour = NULL)) #to allo the dots to be the same color than the rest, need ot reset at the end update_geom_defaults("point", list(colour = "black"))
-ggplot(noinf_pnps_file_1000GafricanpopsASD, aes(ASD_status,DNDS))+
+ggplot(psnoinf_pnps_file_1000GafricanpopsASD, aes(ASD_status,PNPS))+
   geom_boxplot(aes(colour = factor(ASD_status)), color = c("darkgreen","orange"), outlier.colour = NULL, outlier.size = 4, outlier.shape = 1, fill = c("green", "yellow"),)
 
-ggplot(all_dn_ds, aes(factorforall_dn_ds, all_dn_ds))+
-  geom_boxplot(aes(colour = factor(factorforall_dn_ds)), fill = c("green", "yellow"), color = c("darkgreen","orange"), outlier.colour = NULL, outlier.size = 4, outlier.shape = 1)
 
-
-blou<-ggplot(noinf_pnps_file_1000GafricanpopsASD, aes(DNDS, fill = ASD_status)) +
+blou<-ggplot(psnoinf_pnps_file_1000GafricanpopsASD, aes(PNPS, fill = ASD_status)) +
   stat_density(aes(y = ..density..), position = "identity", color = "black", alpha = 0.5)
 
 blou + scale_fill_manual( values = c("green","yellow"))
 
 #cool looking good
 #test
-wilcox.test( DNDS ~ ASD_status, data= noinf_pnps_file_1000GafricanpopsASD)
+wilcox.test( PNPS ~ ASD_status, data= noinf_pnps_file_1000GafricanpopsASD)
 
+#Wilcoxon rank sum test with continuity correction
+#data:  PNPS by ASD_status
+#W = 75719.5, p-value = 0.9077
+#alternative hypothesis: true location shift is not equal to 0
