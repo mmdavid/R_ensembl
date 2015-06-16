@@ -20,7 +20,7 @@ pnps_file_1000Gafricanpops$Ensembl_Gene_ID<-as.character(pnps_file_1000Gafricanp
 
 pnps_file_1000GafricanpopsASD<-subset(pnps_file_1000Gafricanpops, pnps_file_1000Gafricanpops$Ensembl_Gene_ID %in% allgenes)
 
-#850 genes with 
+#850 genes with DNDS or PNPS values
 
 for (i in 1:dim(pnps_file_1000GafricanpopsASD)[1]){
   if (pnps_file_1000GafricanpopsASD$Ensembl_Gene_ID[i] %in% nonuniqueASD_emsblID) {pnps_file_1000GafricanpopsASD$ASD_status[i] <- "comorbdASD"} else {pnps_file_1000GafricanpopsASD$ASD_status[i] <- "ASDonly"}
@@ -30,18 +30,133 @@ for (i in 1:dim(pnps_file_1000GafricanpopsASD)[1]){
 #ok let's do the dnds boxplot
 #save a verison
 pnps_file_1000GafricanpopsASD_save<-pnps_file_1000GafricanpopsASD
+#one verison zero instead of na because it's zero divided by a number
+pnps_file_1000GafricanpopsASD[is.na(pnps_file_1000GafricanpopsASD)] <- 0
+
+------------------------------------------------------------------------------------------------------------------------------------------
+  #DNDS
+------------------------------------------------------------------------------------------------------------------------------------------
 #one verison without any modification
 pnps_file_1000GafricanpopsASD1<- pnps_file_1000GafricanpopsASD
-#one verison zero instead of na 
-pnps_file_1000GafricanpopsASD[is.na(pnps_file_1000GafricanpopsASD)] <- 0
-#remove the one with infinite
-inf_pb<-pnps_file_1000GafricanpopsASD$DNDS == "Inf"
-noinf_pnps_file_1000GafricanpopsASD<-pnps_file_1000GafricanpopsASD[!inf_pb,]
 
-#Lets try with no changes at all 
+#Lets try with no changes at all DNDS
 
 update_geom_defaults("point", list(colour = NULL)) #to allo the dots to be the same color than the rest, need ot reset at the end update_geom_defaults("point", list(colour = "black"))
-ggplot(noinf_pnps_file_1000GafricanpopsASD, aes(ASD_status,DNDS))+
+p2<-ggplot(pnps_file_1000GafricanpopsASD1, aes(ASD_status,DNDS))+
+  geom_boxplot(aes(colour = factor(ASD_status)), color = c("darkgreen","orange"), outlier.colour = NULL, outlier.size = 4, outlier.shape = 1, fill = c("green", "yellow"),)
+p2 + geom_point(aes(colour = factor(ASD_status)), size = I(5), alpha = I(0.1), position = position_jitter(width = 0.4) ) +
+  scale_color_manual(values=c("darkgreen","orange")) 
+
+#a few warning: Warning messages: due to NaN and Inf
+# Removed 403 rows containing non-finite values (stat_boxplot).
+# Removed 376 rows containing missing values (geom_point).
+
+wilcox.test( DNDS ~ ASD_status, data=pnps_file_1000GafricanpopsASD1)
+
+#Wilcoxon rank sum test with continuity correction $ not significatif but lots of Nan and Inf problem
+#Wilcoxon rank sum test with continuity correction
+#data:  DNDS by ASD_status
+#W = 76363.5, p-value = 0.7743
+#alternative hypothesis: true location shift is not equal to 0
+
+#let's try removing all Inf 
+#remove the one with infinite
+
+inf_pb<-pnps_file_1000GafricanpopsASD$DNDS == "Inf"
+noinf_pnps_file_1000GafricanpopsASD<-pnps_file_1000GafricanpopsASD[!inf_pb,]
+#test
+wilcox.test( DNDS ~ ASD_status, data= noinf_pnps_file_1000GafricanpopsASD)
+
+#  Of course: Wilcoxon rank sum test with continuity correction
+#data:  DNDS by ASD_status
+#W = 76363.5, p-value = 0.7743
+#alternative hypothesis: true location shift is not equal to 0
+
+#let's remove zero and inf
+no_zero_pnps_file_1000GafricanpopsASD2<-pnps_file_1000GafricanpopsASD_save
+
+#one verison zero instead of na because it's zero divided by a number
+inf_pb<-no_zero_pnps_file_1000GafricanpopsASD2$DNDS == "Inf"
+no_zero_pnps_file_1000GafricanpopsASD2<-no_zero_pnps_file_1000GafricanpopsASD2[!inf_pb,]
+zero<-is.na(no_zero_pnps_file_1000GafricanpopsASD2$DNDS)
+no_zero_pnps_file_1000GafricanpopsASD2<-no_zero_pnps_file_1000GafricanpopsASD2[!zero,]
+
+#test
+wilcox.test( DNDS ~ ASD_status, data=no_zero_pnps_file_1000GafricanpopsASD2)
+
+#still not significant 
+#Wilcoxon rank sum test with continuity correction
+#data:  DNDS by ASD_status
+#W = 22827.5, p-value = 0.4562
+#alternative hypothesis: true location shift is not equal to 0
+
+#ok and now let's add 1 to avoid all the problems of zero in the ratios
+#now add one to eveyry one
+
+pnps_file_1000GafricanpopsASD2<-pnps_file_1000GafricanpopsASD_save
+dim(pnps_file_1000GafricanpopsASD2)
+
+pnps_file_1000GafricanpopsASD2$PS<-pnps_file_1000GafricanpopsASD2$PS + 1
+pnps_file_1000GafricanpopsASD2$PN<-pnps_file_1000GafricanpopsASD2$PN + 1
+pnps_file_1000GafricanpopsASD2$DS<-pnps_file_1000GafricanpopsASD2$DS + 1
+pnps_file_1000GafricanpopsASD2$DN<-pnps_file_1000GafricanpopsASD2$DN + 1
+
+pnps_file_1000GafricanpopsASD2$PNPS<-(pnps_file_1000GafricanpopsASD2$PN /pnps_file_1000GafricanpopsASD2$PS)
+pnps_file_1000GafricanpopsASD2$DNDS<-(pnps_file_1000GafricanpopsASD2$DN /pnps_file_1000GafricanpopsASD2$DS)
+
+#test
+wilcox.test( DNDS ~ ASD_status, data= pnps_file_1000GafricanpopsASD2)
+#not significatif
+#Wilcoxon rank sum test with continuity correction
+#data:  DNDS by ASD_status
+#W = 85905, p-value = 0.2513
+#alternative hypothesis: true location shift is not equal to 0
+
+------------------------------------------------------------------------------------------------------------------------------------------
+  #PSPN
+------------------------------------------------------------------------------------------------------------------------------------------
+
+#all data Nan -> zero
+  wilcox.test(PNPS ~ ASD_status, data=pnps_file_1000GafricanpopsASD1)
+  #not significatif
+#Wilcoxon rank sum test with continuity correction
+#data:  PNPS by ASD_status
+#W = 77548, p-value = 0.982
+#alternative hypothesis: true location shift is not equal to 0
+  
+  
+#remove InF
+wilcox.test( PNPS ~ ASD_status, data= noinf_pnps_file_1000GafricanpopsASD)
+  #p-value = 0.9986
+
+
+#remove Inf and Nan
+#test
+wilcox.test( PNPS ~ ASD_status, data=no_zero_pnps_file_1000GafricanpopsASD2)
+#W = 20133.5 p-value = 0.02019 YES
+
+
+#adding 1
+#test
+wilcox.test( PNPS ~ ASD_status, data= pnps_file_1000GafricanpopsASD2)
+#yes significatif
+#W = 88930.5, p-value = 0.037
+#alternative hypothesis: true location shift is not equal to 0
+
+#let's plot it 
+
+
+
+
+
+
+
+
+
+
+
+update_geom_defaults("point", list(colour = NULL)) #to allo the dots to be the same color than the rest, need ot reset at the end update_geom_defaults("point", list(colour = "black"))
+ggplot(no_zero_pnps_file_1000GafricanpopsASD2, aes(ASD_status,DNDS))+
   geom_boxplot(aes(colour = factor(ASD_status)), color = c("darkgreen","orange"), outlier.colour = NULL, outlier.size = 4, outlier.shape = 1, fill = c("green", "yellow"),)
 
 ggplot(all_dn_ds, aes(factorforall_dn_ds, all_dn_ds))+
@@ -54,13 +169,14 @@ blou<-ggplot(noinf_pnps_file_1000GafricanpopsASD, aes(DNDS, fill = ASD_status)) 
 blou + scale_fill_manual( values = c("green","yellow"))
 
 #cool looking good
-#test
-wilcox.test( DNDS ~ ASD_status, data= noinf_pnps_file_1000GafricanpopsASD)
+
 
 #Wilcoxon rank sum test with continuity correction
 #data:  DNDS by ASD_status
 #W = 79654, p-value = 0.9188
 #alternative hypothesis: true location shift is not equal to 0
+
+
 
 #ok how about the polymorphism ------------------------------------------------------------------
 
@@ -119,26 +235,7 @@ wilcox.test( NI ~ ASD_status, data= noinf_dnda_noinf_pnps_file_1000GafricanpopsA
 #alternative hypothesis: true location shift is not equal to 0
 
 
-# let's try again but adding 1 to NOT had the remove some genes 
-
-pnps_file_1000GafricanpopsASD2<-subset(pnps_file_1000Gafricanpops, pnps_file_1000Gafricanpops$Ensembl_Gene_ID %in% allgenes)
-
-for (i in 1:dim(pnps_file_1000GafricanpopsASD2)[1]){
-  if (pnps_file_1000GafricanpopsASD2$Ensembl_Gene_ID[i] %in% nonuniqueASD_emsblID) {pnps_file_1000GafricanpopsASD2$ASD_status[i] <- "comorbdASD"} else {pnps_file_1000GafricanpopsASD2$ASD_status[i] <- "ASDonly"}
-  cat(i,"\t")
-}
-
-#now add one to eveyry one
-
-dim(pnps_file_1000GafricanpopsASD2)
-
-pnps_file_1000GafricanpopsASD2$PS<-pnps_file_1000GafricanpopsASD2$PS + 1
-pnps_file_1000GafricanpopsASD2$PN<-pnps_file_1000GafricanpopsASD2$PN + 1
-pnps_file_1000GafricanpopsASD2$DS<-pnps_file_1000GafricanpopsASD2$DS + 1
-pnps_file_1000GafricanpopsASD2$DN<-pnps_file_1000GafricanpopsASD2$DN + 1
-
-pnps_file_1000GafricanpopsASD2$PNPS<-(pnps_file_1000GafricanpopsASD2$PN /pnps_file_1000GafricanpopsASD2$PS)
-pnps_file_1000GafricanpopsASD2$DNDS<-(pnps_file_1000GafricanpopsASD2$DN /pnps_file_1000GafricanpopsASD2$DS)
+#--------- adding 1
 
 
 
