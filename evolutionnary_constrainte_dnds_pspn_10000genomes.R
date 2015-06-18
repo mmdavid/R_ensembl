@@ -1,3 +1,5 @@
+#usefull ggplot2 links:
+#http://docs.ggplot2.org/0.9.3.1/geom_point.html
 
 #now let's try with the 1000 genomes projects
 #pnps_file_1000Gafricanpops contains Ensembl Gene ID, PN, PS, DN and DS (order of the columns). PN and PS is from african pops from the 1000 Genomes project.
@@ -106,6 +108,21 @@ pnps_file_1000GafricanpopsASD2$DNDS<-(pnps_file_1000GafricanpopsASD2$DN /pnps_fi
 
 #test
 wilcox.test( DNDS ~ ASD_status, data= pnps_file_1000GafricanpopsASD2)
+
+#plot of +1
+update_geom_defaults("point", list(colour = NULL)) #to allo the dots to be the same color than the rest, need ot reset at the end update_geom_defaults("point", list(colour = "black"))
+p2<-ggplot(pnps_file_1000GafricanpopsASD2, aes(ASD_status,DNDS))+
+  geom_boxplot(aes(colour = factor(ASD_status)), color = c("darkgreen","orange"), outlier.colour = NULL, outlier.size = 4, outlier.shape = 1, fill = c("green", "yellow"),)
+p2 + geom_point(aes(colour = factor(ASD_status)), size = I(5), alpha = I(0.1), position = position_jitter(width = 0.4) ) +
+  scale_color_manual(values=c("darkgreen","orange")) 
+
+#save as dsdn_adding1_1000genomes
+
+#density graph
+blou<-ggplot(pnps_file_1000GafricanpopsASD2, aes(DNDS, fill = ASD_status)) +
+  stat_density(aes(y = ..density..), position = "identity", color = "black", alpha = 0.5)
+blou + scale_fill_manual( values = c("green","yellow"))
+#save as dnds_densitygraph_addingone_1000genomes
 #not significatif
 #Wilcoxon rank sum test with continuity correction
 #data:  DNDS by ASD_status
@@ -123,58 +140,89 @@ wilcox.test( DNDS ~ ASD_status, data= pnps_file_1000GafricanpopsASD2)
 #data:  PNPS by ASD_status
 #W = 77548, p-value = 0.982
 #alternative hypothesis: true location shift is not equal to 0
-  
+
   
 #remove InF
-wilcox.test( PNPS ~ ASD_status, data= noinf_pnps_file_1000GafricanpopsASD)
-  #p-value = 0.9986
-
+inf_pb_pnps<-pnps_file_1000GafricanpopsASD_save$PNPS == "Inf"
+pnps_file_1000GafricanpopsASD_save_noinfPNPS<-pnps_file_1000GafricanpopsASD_save_noinfPNPS[!inf_pb,]
+#test
+wilcox.test( PNPS ~ ASD_status, data= pnps_file_1000GafricanpopsASD_save_noinfPNPS)
+#significant; W = 22838, p-value = 0.05449
 
 #remove Inf and Nan
 #test
-wilcox.test( PNPS ~ ASD_status, data=no_zero_pnps_file_1000GafricanpopsASD2)
-#W = 20133.5 p-value = 0.02019 YES
+zero<-is.na(pnps_file_1000GafricanpopsASD_save_noinfPNPS$PNPS)
+no_zero_pnps_file_1000GafricanpopsASD_save_noinfPNPS<-pnps_file_1000GafricanpopsASD_save_noinfPNPS[!zero,]
+wilcox.test( PNPS ~ ASD_status, data=no_zero_pnps_file_1000GafricanpopsASD_save_noinfPNPS)
 
+#W = 22838, p-value = 0.05449 YES
 
 #adding 1
 #test
 wilcox.test( PNPS ~ ASD_status, data= pnps_file_1000GafricanpopsASD2)
 #yes significatif
 #W = 88930.5, p-value = 0.037
-#alternative hypothesis: true location shift is not equal to 0
+#alternative hypothesis: true location shift is not equal to 
 
-#let's plot it 
-
-
-
-
-
-
-
-
-
-
-
+#plot
 update_geom_defaults("point", list(colour = NULL)) #to allo the dots to be the same color than the rest, need ot reset at the end update_geom_defaults("point", list(colour = "black"))
-ggplot(no_zero_pnps_file_1000GafricanpopsASD2, aes(ASD_status,DNDS))+
+p2<-ggplot(pnps_file_1000GafricanpopsASD2, aes(ASD_status,PNPS))+
   geom_boxplot(aes(colour = factor(ASD_status)), color = c("darkgreen","orange"), outlier.colour = NULL, outlier.size = 4, outlier.shape = 1, fill = c("green", "yellow"),)
+p2 + geom_point(aes(colour = factor(ASD_status)), size = I(5), alpha = I(0.1), position = position_jitter(width = 0.4) ) +
+  scale_color_manual(values=c("darkgreen","orange")) 
 
-ggplot(all_dn_ds, aes(factorforall_dn_ds, all_dn_ds))+
-  geom_boxplot(aes(colour = factor(factorforall_dn_ds)), fill = c("green", "yellow"), color = c("darkgreen","orange"), outlier.colour = NULL, outlier.size = 4, outlier.shape = 1)
-
-
-blou<-ggplot(noinf_pnps_file_1000GafricanpopsASD, aes(DNDS, fill = ASD_status)) +
+#density graph
+blou<-ggplot(pnps_file_1000GafricanpopsASD2, aes(PNPS, fill = ASD_status)) +
   stat_density(aes(y = ..density..), position = "identity", color = "black", alpha = 0.5)
-
 blou + scale_fill_manual( values = c("green","yellow"))
+#saveas pnps_density_1000genomes
+#save as pnps_adding1_1000genomes
 
-#cool looking good
+#------------------------------------------------------------------------------------------------------------------------------------
+ # McDonald–Kreitman test intrespecies with 1000 genomes
+#------------------------------------------------------------------------------------------------------------------------------------
+#can't do the equation 1- dnpn/dspn so remove all the NaN and InF
+no_zero_pnps_file_1000GafricanpopsASD2 #no NaN anf zero for dnds, remove the pnps as well
+#pnps_file_1000GafricanpopsASD[is.na(pnps_file_1000GafricanpopsASD)] <- 0
+nonNanaPNPS<-no_zero_pnps_file_1000GafricanpopsASD2$PNPS == "Nan"
+no_zero_pnps_file_1000GafricanpopsASD3<-no_zero_pnps_file_1000GafricanpopsASD2[!nonNanaPNPS,]
+noInfPNPS<-no_zero_pnps_file_1000GafricanpopsASD3$PNPS == "Inf"
+no_zero_pnps_file_1000GafricanpopsASD3<-no_zero_pnps_file_1000GafricanpopsASD3[!noInfPNPS,]
+
+#lefy 427 genes
+no_zero_pnps_file_1000GafricanpopsASD3$McDonald<-(1-(no_zero_pnps_file_1000GafricanpopsASD3$DNDS*no_zero_pnps_file_1000GafricanpopsASD3$PNPS))
 
 
-#Wilcoxon rank sum test with continuity correction
-#data:  DNDS by ASD_status
-#W = 79654, p-value = 0.9188
-#alternative hypothesis: true location shift is not equal to 0
+#need to remove the PNPSand above too because I'm STUPID!!!!
+wilcox.test( McDonald ~ ASD_status, data= no_zero_pnps_file_1000GafricanpopsASD3)
+
+#yeah significant:W = 15920.5, p-value = 0.1061
+
+p2<-ggplot(no_zero_pnps_file_1000GafricanpopsASD3, aes(ASD_status,McDonald))+
+  geom_boxplot(aes(colour = factor(ASD_status)), color = c("darkgreen","orange"), outlier.colour = NULL, outlier.size = 4, outlier.shape = 1, fill = c("green", "yellow"),)
+p2 + geom_point(aes(colour = factor(ASD_status)), size = I(5), alpha = I(0.1), position = position_jitter(width = 0.4) ) +
+  scale_color_manual(values=c("darkgreen","orange")) 
+
+#------------------------------------------------------------------------------------------------------------------------------------
+# McDonald–Kreitman test intrespecies with primate for dnds and 1000 genomes for pnps
+#------------------------------------------------------------------------------------------------------------------------------------
+
+#I need ot merge both df
+head(primates)
+head(pnps_file_1000GafricanpopsASD_save)
+#merge 
+colnames(primates)<-c("ASD_status_onlyornot","genes_names","dnds_primate")
+primate2<-primates
+dim(primate2)
+primates_1000gen <- merge(primates,pnps_file_1000GafricanpopsASD_save,by="Ensembl_Gene_ID")
+#cleaning up
+primates_1000gen <-primates_1000gen [,-10]
+#more lcean up
+noInfPNPS<-primates_1000gen$PNPS == "Inf"
+primates_1000gen<-primates_1000gen[!noInfPNPS,]
+primates_1000gen[is.na(primates_1000gen)] <- 0
+
+#add McDonald–Kreitman for 
 
 
 
@@ -182,38 +230,6 @@ blou + scale_fill_manual( values = c("green","yellow"))
 
 #ok let's do the dnds boxplot
 
-
-#remove the one with infinite
-inf_pb<-pnps_file_1000GafricanpopsASD$PNPS == "Inf"
-psnoinf_pnps_file_1000GafricanpopsASD<-pnps_file_1000GafricanpopsASD[!inf_pb,]
-
-update_geom_defaults("point", list(colour = NULL)) #to allo the dots to be the same color than the rest, need ot reset at the end update_geom_defaults("point", list(colour = "black"))
-ggplot(psnoinf_pnps_file_1000GafricanpopsASD, aes(ASD_status,PNPS))+
-  geom_boxplot(aes(colour = factor(ASD_status)), color = c("darkgreen","orange"), outlier.colour = NULL, outlier.size = 4, outlier.shape = 1, fill = c("green", "yellow"),)
-
-
-blou<-ggplot(psnoinf_pnps_file_1000GafricanpopsASD, aes(PNPS, fill = ASD_status)) +
-  stat_density(aes(y = ..density..), position = "identity", color = "black", alpha = 0.5)
-
-blou + scale_fill_manual( values = c("green","yellow"))
-
-#cool looking good
-#test
-wilcox.test( PNPS ~ ASD_status, data= noinf_pnps_file_1000GafricanpopsASD)
-
-#Wilcoxon rank sum test with continuity correction
-#data:  PNPS by ASD_status
-#W = 75719.5, p-value = 0.9077
-#alternative hypothesis: true location shift is not equal to 0
-#calculate the Mc Donald Kreitman  neutrality index (NI) 
-
-inf_pb<-(pnps_file_1000GafricanpopsASD$PNPS == "Inf") 
-
-noinf_pnps_file_1000GafricanpopsASD<-pnps_file_1000GafricanpopsASD[!inf_pb,]
-
-inf_pb_dnds<-noinf_pnps_file_1000GafricanpopsASD$DNDS == "Inf"
-noinf_dnda_noinf_pnps_file_1000GafricanpopsASD<-noinf_pnps_file_1000GafricanpopsASD[!inf_pb_dnds,]
-head(noinf_dnda_noinf_pnps_file_1000GafricanpopsASD)
 
 noinf_dnda_noinf_pnps_file_1000GafricanpopsASD$NI<-noinf_dnda_noinf_pnps_file_1000GafricanpopsASD$DNDS*noinf_dnda_noinf_pnps_file_1000GafricanpopsASD$PNPS
 #test andplots
@@ -256,11 +272,6 @@ wilcox.test( DNDS ~ ASD_status, data= pnps_file_1000GafricanpopsASD2)
 #W = 89255.5, p-value = 0.2047
 #alternative hypothesis: true location shift is not equal to 0
 #Wilcoxon rank sum test with continuity correction
-
-
-#data:  DNDS by ASD_status
-#W = 89255.5, p-value = 0.2047
-#alternative hypothesis: true location shift is not equal to 0
 
 #ok how about the polymorphism ------------------------------------------------------------------
 
