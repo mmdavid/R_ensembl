@@ -203,6 +203,14 @@ p2<-ggplot(no_zero_pnps_file_1000GafricanpopsASD3, aes(ASD_status,McDonald))+
 p2 + geom_point(aes(colour = factor(ASD_status)), size = I(5), alpha = I(0.1), position = position_jitter(width = 0.4) ) +
   scale_color_manual(values=c("darkgreen","orange")) 
 
+#density graph
+blou<-ggplot(no_zero_pnps_file_1000GafricanpopsASD3, aes(McDonald, fill = ASD_status)) +
+  stat_density(aes(y = ..density..), position = "identity", color = "black", alpha = 0.5)
+blou + scale_fill_manual( values = c("green","yellow"))
+
+
+
+-------------------------------with everything
 #------------------------------------------------------------------------------------------------------------------------------------
 # McDonald–Kreitman test intrespecies with primate for dnds and 1000 genomes for pnps
 #------------------------------------------------------------------------------------------------------------------------------------
@@ -211,12 +219,15 @@ p2 + geom_point(aes(colour = factor(ASD_status)), size = I(5), alpha = I(0.1), p
 head(primates)
 head(pnps_file_1000GafricanpopsASD_save)
 #merge 
-colnames(primate2)<-c("ASD_status_onlyornot","Ensembl_Gene_ID","dnds_primate")
 primate2<-primates
+colnames(primate2)<-c("ASD_status_onlyornot","Ensembl_Gene_ID","dnds_primate")
 dim(primate2)
 primates_1000gen <- merge(primate2,pnps_file_1000GafricanpopsASD_save,by="Ensembl_Gene_ID")
+primates_1000save<-primates_1000gen
+
 #cleaning up
 primates_1000gen <-primates_1000gen [,-10]
+primate2<-primates_save<-primate2<-primates
 #more lcean up
 noInfPNPS<-primates_1000gen$PNPS == "Inf"
 primates_1000gen<-primates_1000gen[!noInfPNPS,]
@@ -231,13 +242,47 @@ primates_1000gen$McDonald_primate<-(1-(primates_1000gen$dnds_primate*primates_10
 #now the test 
 wilcox.test( McDonald_primate ~ ASD_status, data= primates_1000gen)
 
+# ok significatif W = 17724.5, p-value = 0.01258
+
 #quick fix
 colnames(primates_1000gen)<-c("Ensembl_Gene_ID","ASD_status","dnds_primate","PN","PS","DN","DS","PNPS","DNDS","McDonald_primate")
 
 #super significative #W = 24014, p-value = 0.01059
-#plot p2<-ggplot(no_zero_pnps_file_1000GafricanpopsASD3, aes(ASD_status,McDonald))+
-geom_boxplot(aes(colour = factor(ASD_status)), color = c("darkgreen","orange"), outlier.colour = NULL, outlier.size = 4, outlier.shape = 1, fill = c("green", "yellow"),)
+p2<-ggplot(primates_1000gen, aes(ASD_status,McDonald_primate))+
+  geom_boxplot(aes(colour = factor(ASD_status)), color = c("darkgreen","orange"), outlier.colour = NULL, outlier.size = 4, outlier.shape = 1, fill = c("green", "yellow"),)
 p2 + geom_point(aes(colour = factor(ASD_status)), size = I(5), alpha = I(0.1), position = position_jitter(width = 0.4) ) +
   scale_color_manual(values=c("darkgreen","orange")) 
 
-------------------------------------------
+#density graph 
+
+#density graph
+blou<-ggplot(primates_1000gen, aes(McDonald_primate, fill = ASD_status)) +
+  stat_density(aes(y = ..density..), position = "identity", color = "black", alpha = 0.5)
+blou + scale_fill_manual( values = c("green","yellow"))
+
+
+
+#---------------------------------------let do the same but on everything
+primates_1000save
+primates_1000save$McDonald_primate<-(1-(primates_1000save$dnds_primate*primates_1000save$PNPS))
+
+
+wilcox.test( McDonald_primate ~ ASD_status, data= primates_1000save)
+#still pretty good significantE W = 17724.5, p-value = 0.01258
+p2<-ggplot(primates_1000save, aes(ASD_status,McDonald_primate))+
+  geom_boxplot(aes(colour = factor(ASD_status)), color = c("darkgreen","orange"), outlier.colour = NULL, outlier.size = 4, outlier.shape = 1, fill = c("green", "yellow"),)
+p2 + geom_point(aes(colour = factor(ASD_status)), size = I(5), alpha = I(0.1), position = position_jitter(width = 0.4) ) +
+  scale_color_manual(values=c("darkgreen","orange")) 
+
+#density graph
+blou<-ggplot(primates_1000save, aes(McDonald_primate, fill = ASD_status)) +
+  stat_density(aes(y = ..density..), position = "identity", color = "black", alpha = 0.5)
+blou + scale_fill_manual( values = c("green","yellow"))
+
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#any genes above zero?
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+plot(sort(primates_1000save$McDonald_primate))
+
+
+
